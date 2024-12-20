@@ -12,29 +12,43 @@ import (
 )
 
 var (
-	url = "https://api.mistral.ai/v1/chat/completions"
+	ErrInvalidApiKey = fmt.Errorf("invalid API key")
 )
 
 type Mistral interface {
 	SendMessage(request SendMessageRequest) (string, error)
 	SendMessageStream(ctx context.Context, request SendMessageRequest) (*StreamIterator, error)
+	setApiKey(apiKey string)
+	setBaseURL(url string)
 }
 
 type MistralProvider struct {
 	ApiKey     string
 	HTTPClient *http.Client
-	model      string
+	BaseURL    string
+}
+
+func (m *MistralProvider) setApiKey(apiKey string) {
+	m.ApiKey = apiKey
+}
+
+func (m *MistralProvider) setBaseURL(url string) {
+	m.BaseURL = url
 }
 
 func (m *MistralProvider) SendMessage(request SendMessageRequest) (string, error) {
 	data, err := json.Marshal(request)
 	if err != nil {
-		return "", fmt.Errorf("Error marshaling JSON: %v", err)
+		return "", fmt.Errorf("error marshaling JSON: %v", err)
 	}
 
-	req, err := http.NewRequest(http.MethodPost, url, bytes.NewBuffer(data))
+	req, err := http.NewRequest(http.MethodPost, m.BaseURL, bytes.NewBuffer(data))
 	if err != nil {
-		return "", fmt.Errorf("Error creating request: %v", err)
+		return "", fmt.Errorf("error creating request: %v", err)
+	}
+
+	if m.ApiKey == "" {
+		m.ApiKey = "NONE"
 	}
 
 	req.Header.Set("Authorization", "Bearer "+m.ApiKey)
@@ -43,19 +57,26 @@ func (m *MistralProvider) SendMessage(request SendMessageRequest) (string, error
 
 	resp, err := m.HTTPClient.Do(req)
 	if err != nil {
-		return "", fmt.Errorf("Error making request: %v", err)
+		return "", fmt.Errorf("error making request: %v", err)
 	}
 	defer resp.Body.Close()
 
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return "", fmt.Errorf("Error reading response: %v", err)
+		return "", fmt.Errorf("error reading response: %v", err)
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		if resp.StatusCode == http.StatusUnauthorized {
+			return "", ErrInvalidApiKey
+		}
+		return "", fmt.Errorf("error sending message: %s, BODY: %s", resp.Status, string(body))
 	}
 
 	var response MistralResponse
 	err = json.Unmarshal(body, &response)
 	if err != nil {
-		return "", fmt.Errorf("Error Unmarshal response: %v", err)
+		return "", fmt.Errorf("error Unmarshal response: %v", err)
 	}
 	if response.Choices != nil {
 		result := ""
@@ -64,7 +85,7 @@ func (m *MistralProvider) SendMessage(request SendMessageRequest) (string, error
 		}
 		return result, nil
 	} else {
-		return "", fmt.Errorf("No result")
+		return "", fmt.Errorf("no result")
 	}
 }
 
@@ -125,12 +146,12 @@ func (m *MistralProvider) SendMessageStream(ctx context.Context, request SendMes
 		defer close(errCh)
 		data, err := json.Marshal(asyncData)
 		if err != nil {
-			errCh <- fmt.Errorf("Error marshaling JSON: %v", err)
+			errCh <- fmt.Errorf("error marshaling JSON: %v", err)
 			return
 		}
-		req, err := http.NewRequestWithContext(ctx, http.MethodPost, url, bytes.NewBuffer(data))
+		req, err := http.NewRequestWithContext(ctx, http.MethodPost, m.BaseURL, bytes.NewBuffer(data))
 		if err != nil {
-			errCh <- fmt.Errorf("MError creating request: %v", err)
+			errCh <- fmt.Errorf("error creating request: %v", err)
 			return
 		}
 
@@ -141,14 +162,17 @@ func (m *MistralProvider) SendMessageStream(ctx context.Context, request SendMes
 		resp, err := m.HTTPClient.Do(req)
 		if err != nil {
 			fmt.Println(err)
-			errCh <- fmt.Errorf("Error making request: %v", err)
+			errCh <- fmt.Errorf("error making request: %v", err)
 			return
 		}
 
 		defer resp.Body.Close()
 
 		if resp.StatusCode != http.StatusOK {
-			errCh <- fmt.Errorf("Status not ok: %d", resp.Status)
+			if resp.StatusCode == http.StatusUnauthorized {
+				errCh <- ErrInvalidApiKey
+			}
+			errCh <- fmt.Errorf("status not ok: %s", resp.Status)
 			return
 		}
 
@@ -168,7 +192,7 @@ func (m *MistralProvider) SendMessageStream(ctx context.Context, request SendMes
 
 			var chunk Chunk
 			if err := json.Unmarshal([]byte(line), &chunk); err != nil {
-				errCh <- fmt.Errorf("Error Decode JSON data: %v", err)
+				errCh <- fmt.Errorf("error Decode JSON data: %v", err)
 				return
 			}
 
@@ -178,7 +202,7 @@ func (m *MistralProvider) SendMessageStream(ctx context.Context, request SendMes
 				}
 				select {
 				case <-ctx.Done():
-					errCh <- fmt.Errorf("Context canceled: %v", ctx.Err())
+					errCh <- fmt.Errorf("context canceled: %v", ctx.Err())
 					return
 				case responseCh <- choice.Delta.Content:
 				}
@@ -186,7 +210,7 @@ func (m *MistralProvider) SendMessageStream(ctx context.Context, request SendMes
 		}
 
 		if err := scanner.Err(); err != nil {
-			errCh <- fmt.Errorf("Scanner error: %v", err)
+			errCh <- fmt.Errorf("scanner error: %v", err)
 		}
 	}()
 

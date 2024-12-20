@@ -17,7 +17,7 @@ func main() {
 
 	result, err := ai.Mistral.SendMessage(
 		mistral_client.SendMessageRequest{
-			Model:    "pkg-large-latest",
+			Model:    "mistral-large-latest",
 			Messages: mesageList,
 		},
 	)

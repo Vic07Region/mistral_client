@@ -23,7 +23,7 @@ func main() {
 
 	iter, err := ai.Mistral.SendMessageStream(ctx,
 		mistral_client.SendMessageRequest{
-			Model:    "pkg-large-latest",
+			Model:    "mistral-large-latest",
 			Messages: mesageList,
 		},
 	)
