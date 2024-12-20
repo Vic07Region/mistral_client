@@ -1,12 +1,12 @@
-### Simple Mistral Client for Golang
+# Simple Mistral Client for Golang
 
-# Wrapper MistralApi
+### Wrapper MistralApi
 
 
 ![Mistral Models Overview docs](https://docs.mistral.ai/getting-started/models/models_overview/)
 
-### Example
-# Sending message
+# Example
+### Sending message
 ```go
 //init pkg pkg
 client := mistal_client.New("API_KEY")
@@ -31,7 +31,7 @@ fmt.Println(result)
 ```
 
 
-# Sending message stream
+### Sending message stream
 
 ```go
 //init pkg pkg
@@ -60,4 +60,10 @@ fmt.Println(iter.Err())
 }
 fmt.Printf("%v", iter.Value())
 }
+```
+
+### Set Api Key after init
+```go 
+client := mistal_client.New("API_KEY")
+client.SetAPIKey("API_KEY")
 ```
