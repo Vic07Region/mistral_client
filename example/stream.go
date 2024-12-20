@@ -9,12 +9,16 @@ import (
 
 func main() {
 	ai := mistral_client.New("API_KEY")
+
 	var mesageList []mistral_client.Message
+
 	mesageList = append(mesageList, mistral_client.Message{
 		Role:    "user",
 		Content: "посчитай до 5",
 	})
+
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+
 	defer cancel()
 
 	iter, err := ai.Mistral.SendMessageStream(ctx,

@@ -7,7 +7,9 @@ import (
 
 func main() {
 	ai := mistral_client.New("API_KEY")
+
 	var mesageList []mistral_client.Message
+
 	mesageList = append(mesageList, mistral_client.Message{
 		Role:    "user",
 		Content: "посчитай до 5",
