@@ -8,7 +8,7 @@
 ### Example
 # Sending message
 ```go
-//init mistral client
+//init pkg pkg
 client := mistal_client.New("API_KEY")
 
 //set Message List
@@ -20,7 +20,7 @@ Content: "посчитай до 5",
 //send message
 result, err := client.Mistral.SendMessage(
 mistal_client.SendMessageRequest{
-Model:    "mistral-large-latest",
+Model:    "pkg-large-latest",
 Messages: mesageList,
 })
 if err != nil {
@@ -34,7 +34,7 @@ fmt.Println(result)
 # Sending message stream
 
 ```go
-//init mistral client
+//init pkg pkg
 client := mistal_client.New("API_KEY")
 
 //set Message List
@@ -46,7 +46,7 @@ Content: "посчитай до 5",
 //send message
 iter, err := client.Mistral.SendMessageStream(ctx,
 mistal_client.SendMessageRequest{
-Model:    "mistral-large-latest",
+Model:    "pkg-large-latest",
 Messages: mesageList,
 },
 )

@@ -1,10 +1,8 @@
 package main
 
 import (
-	"context"
 	"fmt"
 	"github.com/Vic07Region/mistral_client"
-	"time"
 )
 
 func main() {
@@ -14,10 +12,8 @@ func main() {
 		Role:    "user",
 		Content: "посчитай до 5",
 	})
-	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
-	defer cancel()
 
-	iter, err := ai.Mistral.SendMessageStream(ctx,
+	result, err := ai.Mistral.SendMessage(
 		mistral_client.SendMessageRequest{
 			Model:    "pkg-large-latest",
 			Messages: mesageList,
@@ -27,10 +23,5 @@ func main() {
 		fmt.Println(err)
 	}
 
-	for iter.Next() {
-		if iter.Err() != nil {
-			fmt.Println(iter.Err())
-		}
-		fmt.Printf("%v", iter.Value())
-	}
+	fmt.Println(result)
 }

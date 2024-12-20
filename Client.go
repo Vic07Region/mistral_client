@@ -1,4 +1,4 @@
-package mistal_client
+package mistral_client
 
 import (
 	"bufio"
