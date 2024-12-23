@@ -5,12 +5,12 @@ import (
 	"time"
 )
 
-type mistralAi struct {
+type MistralAi struct {
 	Mistral
 	HTTPClient *http.Client
 }
 
-func New(apikey string) *mistralAi {
+func New(apikey string) *MistralAi {
 	httpClient := &http.Client{
 		Timeout: 30 * time.Second,
 	}
@@ -21,16 +21,16 @@ func New(apikey string) *mistralAi {
 		BaseURL:    "https://api.mistral.ai/v1/chat/completions",
 	}
 
-	return &mistralAi{
+	return &MistralAi{
 		HTTPClient: httpClient,
 		Mistral:    &provider,
 	}
 }
 
-func (l *mistralAi) SetAPIKey(apiKey string) {
+func (l *MistralAi) SetAPIKey(apiKey string) {
 	l.Mistral.setApiKey(apiKey)
 }
 
-func (l *mistralAi) SetBaseURL(url string) {
+func (l *MistralAi) SetBaseURL(url string) {
 	l.Mistral.setBaseURL(url)
 }
