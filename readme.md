@@ -20,7 +20,7 @@ Content: "посчитай до 5",
 //send message
 result, err := client.Mistral.SendMessage(
 mistal_client.SendMessageRequest{
-Model:    "pkg-large-latest",
+Model:    "mistral-large-latest",
 Messages: mesageList,
 })
 if err != nil {
@@ -46,7 +46,7 @@ Content: "посчитай до 5",
 //send message
 iter, err := client.Mistral.SendMessageStream(ctx,
 mistal_client.SendMessageRequest{
-Model:    "pkg-large-latest",
+Model:    "mistral-large-latest",
 Messages: mesageList,
 },
 )
@@ -65,5 +65,6 @@ fmt.Printf("%v", iter.Value())
 ### Set Api Key after init
 ```go 
 client := mistal_client.New("API_KEY")
+//code 
 client.SetAPIKey("API_KEY")
 ```
